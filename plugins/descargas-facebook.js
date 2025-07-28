@@ -77,7 +77,7 @@ await m.react(`✅`)
 console.log(e) 
 }}}}}}
 handler.command = /^(facebook|fb|facebookdl|fbdl|facebook1|fb1|facebookdl1|fbdl1|facebook2|fb2|facebookdl2|fbdl2)$/i
-handler.limit = 3
+handler.limit = false
 export default handler
 
 async function igeh(url_media) {
