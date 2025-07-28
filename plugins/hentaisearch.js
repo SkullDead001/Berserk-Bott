@@ -1,40 +1,47 @@
 import axios from 'axios';
 
-let handler = async (m, { conn, text, usedPrefix, command }) => {
-  if (!text) return m.reply(`📥 *Ingresa el nombre del anime*\n\nEjemplo:\n${usedPrefix + command} Naruto`);
+let handler = async (m, { conn, command, text, usedPrefix }) => {
+  if (!text) return m.reply('❌ Ingresa el nombre del anime que deseas buscar.');
 
   try {
-    const res = await axios.get(`https://animeflvapi.vercel.app/search?text=${encodeURIComponent(text)}`);
-    const results = res.data.results;
+    let res = await axios.get(`https://animeflvapi.vercel.app/search?text=${encodeURIComponent(text)}`);
+    let results = res.data.results;
 
-    if (!results || results.length === 0) return m.reply('❌ No se encontraron resultados.');
-
-    let list = results.slice(0, 5); // Máximo 5 resultados
-
-    for (const anime of list) {
-      let caption = `🎬 *${anime.title}*\n`;
-      caption += `📦 Tipo: ${anime.type}\n`;
-      caption += `🆔 ID: ${anime.id}`;
-
-      await conn.sendMessage(m.chat, {
-        image: { url: anime.poster },
-        caption,
-        buttons: [
-          {
-            buttonId: `.animedl ${anime.id}`,
-            buttonText: { displayText: `📥 Ver Episodios` },
-            type: 1
-          }
-        ],
-        headerType: 4
-      }, { quoted: m });
+    if (!results || results.length === 0) {
+      return m.reply('❌ No se encontraron resultados para tu búsqueda.');
     }
 
+    let messages = [];
+
+    for (let i = 0; i < results.length && i < 10; i++) {
+      let anime = results[i];
+      let desc = anime.synopsis?.trim() || 'Sin sinopsis disponible.';
+      if (desc.length > 400) desc = desc.slice(0, 380) + '...';
+
+      messages.push([
+        `🎌 *${anime.title}*`,
+        `📝 *Sinopsis:* ${desc}`,
+        anime.poster || 'https://telegra.ph/file/ec725de5925f6fb4d5647.jpg',
+        [],
+        [[`${usedPrefix}animedl ${anime.id}`]],
+        [],
+        []
+      ]);
+    }
+
+    await conn.sendCarousel(
+      m.chat,
+      `🔎 Resultados para: *${text}*`,
+      '',
+      '📺 Resultados encontrados',
+      messages,
+      m
+    );
   } catch (e) {
     console.error(e);
-    m.reply('⚠️ Ocurrió un error al buscar el anime. Intenta más tarde.');
+    return m.reply('⚠️ Error al buscar anime. La API puede estar caída o el formato cambió.');
   }
 };
 
-handler.command = /^animesearch$/i;
+handler.command = /^\.?animesearch$/i;
 export default handler;
