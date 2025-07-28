@@ -43,8 +43,7 @@ handler.tags = ['group'];
 handler.command = /^del(ete)?$/i;
 handler.group = true; 
 handler.admin = true; 
-handler.botAdmin = true; 
-handler.register = true;
+handler.botAdmin = true;
 
 export default handler;
 
